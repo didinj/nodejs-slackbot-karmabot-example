@@ -1,0 +1,20 @@
+{
+  "name": "karmabot",
+  "version": "1.0.0",
+  "description": "Karma for says thanks to other users",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm test"
+  },
+  "keywords": [
+    "karmabot"
+  ],
+  "author": "Didin J.",
+  "license": "MIT",
+  "dependencies": {
+    "bluebird": "^3.5.1",
+    "mongoose": "^4.13.6",
+    "slackbots": "^0.3.0",
+    "sqlite3": "^3.1.13"
+  }
+}
