@@ -3,8 +3,11 @@
 var SlackBot = require('slackbots'); // import slackbot library
 var mongoose = require('mongoose');  // import mongoose library for accessing MongoDB
 var Karma = require('../models/Karma.js'); // import karma data model
+var Redeem = require('../models/Redeem.js'); // import redeem data model
 var users = []; // user list
 var channels = []; // channel list
+var redeemamt = 20;
+var redeemitem = ':ice_cream:';
 
 /* Create MongoDB Connection */
 mongoose.Promise = require('bluebird');
@@ -82,12 +85,12 @@ bot.on('message', function(data) {
       } else {
         // check if message text contains metioned user id
         var keywords = data.text.substring(data.text.indexOf('<@'),data.text.indexOf('<@')+24);
-        if(Boolean(keywords)) {
+        if(Boolean(keywords) && data.text.substring(data.text.indexOf('<@')+13,data.text.indexOf('<@')+24) === 'leaderboard') {
           var karmabotid = keywords.substring(2,11);
           var leaderboard = keywords.substring(13,24);
           var karmabotuser = users.find(user => user.id === karmabotid);
           // check if user karma found and other keywords contains 'leaderboard' keyword
-          if(karmabotuser.name === 'karmabot' && leaderboard === 'leaderboard') {
+          if(karmabotuser.name === 'karmabot') {
             // find karma group by user_id and sort by karma count
             Karma.aggregate([
               {
@@ -195,6 +198,58 @@ bot.on('message', function(data) {
                       });
                     }
                   });
+                }
+              }
+            });
+          }
+        }
+        // Additional function for redeem karma points (1 item for 20 karma points)
+        if(data.text.substring(0,6) === 'redeem') {
+          var redeemkw = data.text.substring(data.text.indexOf('<@'),data.text.indexOf('<@')+19);
+          var karmabotid = redeemkw.substring(2,11);
+          var redeemtext = data.text.substring(0,6);
+          var karmabotuser = users.find(user => user.id === karmabotid);
+          // check if user karma found and other keywords contains 'redeem' keyword
+          if(karmabotuser.name === 'karmabot' && redeemtext === 'redeem') {
+            Karma.find({user_id:data.user}).exec(function(err, karmas) {
+              if (err) {
+                console.log(err);
+              } else {
+                var totalkarma = karmas.length;
+                if(totalkarma >= redeemamt) {
+                  Redeem.find({user_id:data.user}).exec(function(err, redeems) {
+                    if (err) {
+                      console.log(err);
+                    } else {
+                      var totalredeem = redeems.length;
+                      if(totalredeem > 0) {
+                        var karmaleft = totalkarma - (totalredeem*redeemamt);
+                        if(karmaleft >= redeemamt) {
+                          Redeem.create({user_id:data.user,redeem_item:redeemitem}, function (err, post) {
+                            if (err) {
+                              console.log(err);
+                            } else {
+                              karmaleft = totalkarma - ((totalredeem+1)*redeemamt);
+                              bot.postMessageToChannel(channel.name, 'You have redeem your Karma points successfully. \n Now you have '+karmaleft+' karma points left.', {as_user: true, icon_emoji: redeemitem});
+                            }
+                          });
+                        } else {
+                          bot.postMessageToChannel(channel.name, 'You don\'t have enough Karma points to redeem', {as_user: true});
+                        }
+                      } else {
+                        Redeem.create({user_id:data.user,redeem_item:redeemitem}, function (err, post) {
+                          if (err) {
+                            console.log(err);
+                          } else {
+                            karmaleft = totalkarma - redeemamt;
+                            bot.postMessageToChannel(channel.name, 'You have redeem your Karma points successfully. \n Now you have '+karmaleft+' karma points left.', {as_user: true, icon_emoji: redeemitem});
+                          }
+                        });
+                      }
+                    }
+                  });
+                } else {
+                  bot.postMessageToChannel(channel.name, 'You don\'t have enough Karma points to redeem', {as_user: true});
                 }
               }
             });
