@@ -21,8 +21,7 @@ mongoose.connect('mongodb://didinj:fadhilah_07@ds163656.mlab.com:63656/karmabot'
 
 /* Create Bot using My Slack Team API KEY */
 var bot = new SlackBot({
-    // token: process.env.BOT_API_KEY, // BOT_API_KEY taken from Slack Team Bot
-    token: 'xoxb-279502126208-jVVJMWKQrAXMtpJUuaO27OkV',
+    token: process.env.BOT_API_KEY, // BOT_API_KEY taken from Slack Team Bot
     name: 'KarmaBot'
 });
 
