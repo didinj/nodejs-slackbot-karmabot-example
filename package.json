@@ -4,7 +4,8 @@
   "description": "Karma for says thanks to other users",
   "main": "index.js",
   "scripts": {
-    "test": "npm test"
+    "test": "npm test",
+    "start": "node ./bin/bot.js"
   },
   "keywords": [
     "karmabot"
